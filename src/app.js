@@ -3,12 +3,14 @@ import cors from "cors";
 import cookieParser from 'cookie-parser'
 import path from 'path'
 import { errorHandler } from "./middleware/errorHandler.middleware.js";
+import helmet from "helmet";
+
 
 const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
@@ -18,6 +20,8 @@ app.use(
     limit: "20kb"
   })
 );
+
+app.use(helmet())
 
 app.use(express.urlencoded({
     extended : true,
