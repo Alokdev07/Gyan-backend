@@ -188,7 +188,7 @@ const login = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: false,      
-    sameSite: "lax",    
+    sameSite: "none",    
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
 
@@ -246,8 +246,9 @@ const googleLogin = asyncHandler(async (req, res) => {
     .status(200)
     .cookie("token", token, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
       secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000
     })
     .json(
       new ApiResponse(200, {
@@ -309,7 +310,8 @@ const logout = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000
   };
 
   return res

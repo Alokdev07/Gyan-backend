@@ -23,6 +23,8 @@ app.use(
 
 app.use(helmet())
 
+app.set("trust proxy", 1);
+
 app.use(express.urlencoded({
     extended : true,
     limit : '20kb'
