@@ -3,7 +3,6 @@ import {generateOtp, verifyOtp,registerUser, getProfile, login, googleLogin,comp
 import {upload} from '../middleware/multer.middleware.js'
 import {verifyJwt} from '../middleware/auth.middleware.js'
 import {authorizeRoles} from '../middleware/authorizeRoles.middleware.js'
-import { logoutUser } from '../../../client/src/store/authslice/userSlice.js'
 
 const route = Router()
 
