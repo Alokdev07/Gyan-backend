@@ -1,0 +1,2 @@
+add  all the enviromental variable in this file
+
