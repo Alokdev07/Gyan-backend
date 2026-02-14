@@ -1,29 +1,28 @@
-import nodemailer from "nodemailer";
+import SibApiV3Sdk from "@getbrevo/brevo";
 
 export const sendOtpEmail = async (email, code) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-    await transporter.sendMail({
-      from: `"GyanAryan" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Your Verification Code or complaint",
-      html: `
+    apiInstance.setApiKey(
+      SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
+      process.env.BREVO_API_KEY
+    );
+
+    const sendSmtpEmail = {
+      sender: { email: "your_verified_email@gmail.com", name: "GyanAryan" },
+      to: [{ email }],
+      subject: "Your Verification Code",
+      htmlContent: `
         <div>
-          <h2>Verification Code or complaint</h2>
+          <h2>Verification Code</h2>
           <h1>${code}</h1>
           <p>Valid for 5 minutes</p>
         </div>
       `,
-    });
+    };
+
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
 
     return true;
   } catch (error) {
