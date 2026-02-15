@@ -1,4 +1,7 @@
 import SibApiV3Sdk from "@getbrevo/brevo";
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 export const sendOtpEmail = async (email, code) => {
   try {
@@ -9,8 +12,9 @@ export const sendOtpEmail = async (email, code) => {
       process.env.BREVO_API_KEY
     );
 
+
     const sendSmtpEmail = {
-      sender: { email: "your_verified_email@gmail.com", name: "GyanAryan" },
+      sender: { email: "csekhar2028@gmail.com", name: "GyanAryan" },
       to: [{ email }],
       subject: "Your Verification Code",
       htmlContent: `
