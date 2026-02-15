@@ -4,11 +4,13 @@ import { ApiError } from "../utilities/ApiError.js";
 
 const verifyJwt = async (req, res, next) => {
   try {
-    const token = req.cookies?.token;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       throw new ApiError("Unauthorized. Token missing.", [], 401);
     }
+
+    const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.TOKENKEYSECRET);
 
@@ -20,7 +22,7 @@ const verifyJwt = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    
+
     if (error.name === "TokenExpiredError") {
       return next(new ApiError("Token expired. Please login again.", [], 401));
     }

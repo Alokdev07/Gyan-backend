@@ -1,11 +1,11 @@
-import User from '../model/user.model.js'
+import User from "../model/user.model.js";
 import { ApiError } from "../utilities/ApiError.js";
 import { ApiResponse } from "../utilities/ApiResponse.js";
 import { asyncHandler } from "../utilities/asyncHandler.js";
 import { uploadFileOnCloudinary } from "../utilities/cloudinary.js";
 import { sendOtpEmail } from "../utilities/generateOtp.js";
-import {oauth2Client} from '../utilities/google.js'
-import axios from 'axios'
+import { oauth2Client } from "../utilities/google.js";
+import axios from "axios";
 
 let otpMap = new Map();
 let googleMap = new Map();
@@ -18,7 +18,7 @@ const generateOtp = asyncHandler(async (req, res) => {
   }
 
   const userExists = await User.findOne({ email });
-  console.log(userExists)
+  console.log(userExists);
 
   if (purpose === "register" && userExists) {
     throw new ApiError("Email already exists", [], 400);
@@ -36,14 +36,13 @@ const generateOtp = asyncHandler(async (req, res) => {
   otpMap.set(email.trim(), {
     otp: Number(otp),
     purpose,
-    expiresAt: Date.now() + 5 * 60 * 1000
+    expiresAt: Date.now() + 5 * 60 * 1000,
   });
 
-  return res.status(200).json(
-    new ApiResponse(200, null, `OTP sent for ${purpose}`)
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, `OTP sent for ${purpose}`));
 });
-
 
 const verifyOtp = asyncHandler(async (req, res) => {
   const { email, otp, purpose } = req.body;
@@ -82,17 +81,14 @@ const verifyOtp = asyncHandler(async (req, res) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { email, username, fullName, password, role, certificate } = req.body;
 
-  
   if ([email, username, fullName, password].some((f) => !f?.trim())) {
     throw new ApiError("All fields are required", [], 400);
   }
 
-  
   if (role && !["student", "teacher"].includes(role)) {
     throw new ApiError("Invalid role", [], 400);
   }
 
-  
   if (role === "teacher" && !certificate?.trim()) {
     throw new ApiError(
       "Certificate is required for teacher registration",
@@ -101,7 +97,6 @@ const registerUser = asyncHandler(async (req, res) => {
     );
   }
 
-  
   const existedEmail = await User.findOne({ email });
   if (existedEmail) {
     throw new ApiError("Email already exists", [], 400);
@@ -112,7 +107,6 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError("Username already taken", [], 400);
   }
 
- 
   let avatarUrl;
   const avatarLocalPath = req.files?.avatar?.[0]?.path;
 
@@ -126,7 +120,6 @@ const registerUser = asyncHandler(async (req, res) => {
     avatarUrl = `${baseUrl}/public/defaultDp.png`;
   }
 
-  
   const user = await User.create({
     username,
     email,
@@ -134,22 +127,21 @@ const registerUser = asyncHandler(async (req, res) => {
     fullName: fullName,
     role: role || "student",
     avatar: avatarUrl,
-    certificate: role === "teacher" ? certificate : undefined
+    certificate: role === "teacher" ? certificate : undefined,
   });
 
   const token = user.generateToken();
 
- const options = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-};
-
-  return res
-    .status(201)
-    .cookie("token", token, options)
-    .json(new ApiResponse(201, user, "User registered successfully"));
+  return res.status(201).json(
+    new ApiResponse(
+      201,
+      {
+        user,
+        token,
+      },
+      "User registered successfully"
+    )
+  );
 });
 
 const getProfile = asyncHandler(async (req, res) => {
@@ -185,26 +177,18 @@ const login = asyncHandler(async (req, res) => {
 
   const token = user.generateToken();
 
-  const options = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-};
-
-
   user.password = undefined;
 
-  return res
-    .status(200)
-    .cookie("token", token, options)
-    .json(
-      new ApiResponse(
-        200,
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
         user,
-        "Login successful"
-      )
-    );
+        token,
+      },
+      "Login successful"
+    )
+  );
 });
 
 const googleLogin = asyncHandler(async (req, res) => {
@@ -228,8 +212,8 @@ const googleLogin = asyncHandler(async (req, res) => {
   let user = await User.findOne({ email });
   let newPicture;
   if (picture) {
-  newPicture = picture.replace("s96", "s400");
-}
+    newPicture = picture.replace("s96", "s400");
+  }
 
   if (!user) {
     user = await User.create({
@@ -240,24 +224,19 @@ const googleLogin = asyncHandler(async (req, res) => {
     });
   }
 
-  const options = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-};
-
   const token = user.generateToken();
 
-  return res
-    .status(200)
-    .cookie("token", token, options)
-    .json(
-      new ApiResponse(200, {
-        email,
-        isProfileCompleted: user.isProfileCompleted
-      }, "Google login successful")
-    );
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        user,
+        token,
+        isProfileCompleted: user.isProfileCompleted,
+      },
+      "Google login successful"
+    )
+  );
 });
 
 const completeGoogleSignup = asyncHandler(async (req, res) => {
@@ -288,37 +267,29 @@ const completeGoogleSignup = asyncHandler(async (req, res) => {
 
   user.fullName = fullName;
   user.username = username;
-  user.password = password; 
+  user.password = password;
   user.role = role || "student";
   user.certificate = role === "teacher" ? certificate : undefined;
   user.isProfileCompleted = true;
 
   await user.save();
 
-  return res.status(200).json(
-    new ApiResponse(200, user, "Signup completed successfully")
-  );
-});
-const getuserProfile = asyncHandler(async(req,res) => {
-  const {username} = req.query
-  if(!username) throw new ApiError("username is required",[],400)
-  const user = await User.findOne({username : username})
-  if(!user) throw new ApiError("username does not exists",[],400)
-  return res.status(200)
-            .json(new ApiResponse(200,user,"user fetched successfully"))
-})
-const logout = asyncHandler(async (req, res) => {
-
-  const options = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-};
-
   return res
     .status(200)
-    .clearCookie("token", options)
+    .json(new ApiResponse(200, user, "Signup completed successfully"));
+});
+const getuserProfile = asyncHandler(async (req, res) => {
+  const { username } = req.query;
+  if (!username) throw new ApiError("username is required", [], 400);
+  const user = await User.findOne({ username: username });
+  if (!user) throw new ApiError("username does not exists", [], 400);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "user fetched successfully"));
+});
+const logout = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
     .json(new ApiResponse(200, null, "Logout successfully"));
 });
 
@@ -351,10 +322,7 @@ Email: ${complaint.email}
 Message: ${complaint.message}
 `;
 
-  const sent = await sendOtpEmail(
-    "csekhar2028@gmail.com",
-    emailContent
-  );
+  const sent = await sendOtpEmail("csekhar2028@gmail.com", emailContent);
 
   if (!sent) {
     throw new ApiError("Complaint sending failed", [], 500);
@@ -365,8 +333,15 @@ Message: ${complaint.message}
     .json(new ApiResponse(200, {}, "Complaint sent successfully"));
 });
 
-
-
-
-
-export { generateOtp, registerUser, verifyOtp, getProfile, login, googleLogin, completeGoogleSignup,getuserProfile,logout,receiveMessage };
+export {
+  generateOtp,
+  registerUser,
+  verifyOtp,
+  getProfile,
+  login,
+  googleLogin,
+  completeGoogleSignup,
+  getuserProfile,
+  logout,
+  receiveMessage,
+};
