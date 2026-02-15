@@ -139,16 +139,16 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const token = user.generateToken();
 
-  const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  };
+ const options = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
   return res
     .status(201)
-    .cookie("token", token, cookieOptions)
+    .cookie("token", token, options)
     .json(new ApiResponse(201, user, "User registered successfully"));
 });
 
@@ -186,11 +186,11 @@ const login = asyncHandler(async (req, res) => {
   const token = user.generateToken();
 
   const options = {
-    httpOnly: true,
-    secure: false,      
-    sameSite: "none",    
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  };
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
 
   user.password = undefined;
@@ -240,16 +240,18 @@ const googleLogin = asyncHandler(async (req, res) => {
     });
   }
 
+  const options = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
   const token = user.generateToken();
 
   return res
     .status(200)
-    .cookie("token", token, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    })
+    .cookie("token", token, options)
     .json(
       new ApiResponse(200, {
         email,
@@ -308,11 +310,11 @@ const getuserProfile = asyncHandler(async(req,res) => {
 const logout = asyncHandler(async (req, res) => {
 
   const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  };
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
   return res
     .status(200)
