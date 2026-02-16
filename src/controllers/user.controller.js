@@ -219,6 +219,7 @@ const googleLogin = asyncHandler(async (req, res) => {
     user = await User.create({
       email,
       fullName: name,
+      username: `google_${Date.now()}`,
       avatar: newPicture,
       isProfileCompleted: false,
     });
